@@ -12,7 +12,7 @@ import Foundation
  MediaBrowserDelegate, used to delegate various information to the MediaBrowser presenter View.
  */
 @available(iOS 13.0, *)
-protocol MediaBrowserDelegate: AnyObject {
+public protocol MediaBrowserDelegate: AnyObject {
     /**
      Tells the delegate that the browser started swiping browsers
      
@@ -36,6 +36,13 @@ protocol MediaBrowserDelegate: AnyObject {
           - Parameter hidden: the status of visibility control
      */
     func mediaBrowserControlVisibilityToggled(browser: MediaBrowser, hidden: Bool)
+    
+    /**
+     Tells the delegate that the medias are ready for upload
+          
+          - Parameter browsers: reference to all the Media
+     */
+    func didFinishBrowsingMedia(browsers: [MediaBrowsable])
 }
 
 @available(iOS 13.0, *)
@@ -46,4 +53,6 @@ extension MediaBrowserDelegate {
     func willDismissMediaBrowserAtPageIndex(withIndex index: Int, browser: MediaBrowser) { }
     
     func mediaBrowserControlVisibilityToggled(browser: MediaBrowser, hidden: Bool) { }
+    
+    func didFinishBrowsingMedia(browsers: [MediaBrowsable]) { }
 }

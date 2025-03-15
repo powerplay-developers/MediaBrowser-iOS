@@ -20,5 +20,13 @@ extension UIView {
         self.addSubview(contentView)
         return contentView
     }
-    
+
+    func runtimeSize()-> CGSize {
+        let size: CGSize =  self.systemLayoutSizeFitting(
+            CGSize(width: UIScreen.main.bounds.width,
+                   height: UIView.layoutFittingExpandedSize.height),
+            withHorizontalFittingPriority: .fittingSizeLevel,
+            verticalFittingPriority: .fittingSizeLevel)
+        return size
+    }
 }

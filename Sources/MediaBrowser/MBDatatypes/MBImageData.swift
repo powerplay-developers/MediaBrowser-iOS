@@ -11,6 +11,10 @@ import UIKit
 // MBImageData is the Data format which MediaBrowser uses to render Data based media.
 class MBImageData: MediaBrowsable {
     
+    var isSelected: Bool = false
+    
+    var metaData: String?
+    
     var data: Data
     
     var mediaId: String?

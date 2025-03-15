@@ -11,6 +11,10 @@ import UIKit
 // MBMediaUrl is the URL format which MediaBrowser uses to render URL based media.
 class MBMediaUrl: MediaBrowsable {
     
+    var isSelected: Bool = false
+    
+    var metaData: String?
+    
     var url: String
     
     var mediaId: String?

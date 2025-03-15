@@ -24,6 +24,16 @@ public protocol MediaBrowsable {
     var placeHolderImage: UIImage? { get set }
     
     /**
+    Remarks added against the media
+     */
+    var metaData: String? { get set }
+    
+    /**
+    Remarks added against the media
+     */
+    var isSelected: Bool { get set }
+    
+    /**
     Method which converts raw media to Media Browsable Type
      */
     func transformToBrowsableMedia() -> MBMediaType?

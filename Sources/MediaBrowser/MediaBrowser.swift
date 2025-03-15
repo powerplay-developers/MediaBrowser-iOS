@@ -56,34 +56,57 @@ public class MediaBrowser: UIViewController {
     private lazy var bottomNavBar: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .black.withAlphaComponent(0.5)
         return view
     }()
     
-    private lazy var bottomNavBarStack: UIStackView = {
-        let stck = UIStackView()
-        stck.translatesAutoresizingMaskIntoConstraints = false
-        stck.axis = .horizontal
-        stck.spacing = 16
-        stck.distribution = .fillEqually
-        return stck
+    private lazy var descriptionTextField: PaddedTextField = {
+        let tf = PaddedTextField(insets: UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12))
+        tf.translatesAutoresizingMaskIntoConstraints = false
+        tf.attributedPlaceholder = NSAttributedString(string: "Enter a description...", attributes: [.foregroundColor: UIColor.white])
+        tf.textColor = .white
+        tf.font = .systemFont(ofSize: 14)
+        tf.backgroundColor = .clear
+        tf.layer.borderWidth = 1
+        tf.layer.borderColor = UIColor.white.cgColor
+        tf.layer.cornerRadius = 8
+        tf.layer.masksToBounds = true
+        tf.addDoneButtonOnKeyboard()
+        tf.addTarget(self, action: #selector(textDidChange(_:)), for: .editingChanged)
+        return tf
     }()
     
-    private lazy var leftSwipeButton: UIButton = {
-        let btn = UIButton()
-        btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.setImage(UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold)), for: .normal)
-        btn.tintColor = MBConstants.Color.browserTint
-        return btn
+    private lazy var nextButton: UIButton = {
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(UIImage(named: "chevron_right", in: Bundle.module, compatibleWith: nil)?.withTintColor(.white), for: .normal)
+        button.addTarget(self, action: #selector(nextButtonTapped), for: .touchUpInside)
+        button.backgroundColor = .systemBlue
+        button.tintColor = .white
+        return button
     }()
     
-    private lazy var rightSwipeButton: UIButton = {
-        let btn = UIButton()
-        btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.setImage(UIImage(systemName: "chevron.right", withConfiguration: UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold)), for: .normal)
-        btn.tintColor = MBConstants.Color.browserTint
-        return btn
+    private lazy var collectionView: UICollectionView = {
+        
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.minimumInteritemSpacing = 8
+        layout.itemSize = CGSize(width: 62, height: 74)
+        
+        let collectionView = UICollectionView(frame: self.view.frame, collectionViewLayout: layout)
+        collectionView.allowsSelection = true
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.allowsMultipleSelection = false
+        collectionView.backgroundColor = .clear
+        collectionView.showsHorizontalScrollIndicator = false
+        collectionView.showsVerticalScrollIndicator = false
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        
+        collectionView.register(MediaDisplayCollectionViewCell.self, forCellWithReuseIdentifier: MediaDisplayCollectionViewCell.id)
+        
+        return collectionView
     }()
-    
     
     private lazy var contentStack: UIStackView = {
         let stck = UIStackView()
@@ -145,10 +168,16 @@ public class MediaBrowser: UIViewController {
     private var storagePolicy: MBStoragePolicy
     
     /// MediaBrowser View delegation
-    weak var delegate: MediaBrowserDelegate?
+    public weak var delegate: MediaBrowserDelegate?
     
     /// Parent class nav bar visibility flag
     private var isParentNavigationBarHidden = false
+    
+    /// Bottom Contstraint for the view
+    private var bottomConstraint: NSLayoutConstraint?
+    
+    /// Keyboard visbility Contstraint for the view
+    private var isKeyboardVisible: Bool = false
     
     public init(storagePolicy: MBStoragePolicy = .InMemory, browserTools: [MBOperations] = []) {
         self.storagePolicy = storagePolicy
@@ -175,7 +204,7 @@ public class MediaBrowser: UIViewController {
         addViews()
         layoutConstraints()
         addTarget()
-        
+        addKeyboardObserver()
         setupView()
     }
     
@@ -185,6 +214,7 @@ public class MediaBrowser: UIViewController {
         MediaBrowserFileManager.shared.checkForEviction()
         /// Navigation Bar visibility
         self.navigationController?.isNavigationBarHidden = isParentNavigationBarHidden
+        removeKeyboardObservers()
     }
     
     /// Basic UI setups
@@ -203,10 +233,12 @@ public class MediaBrowser: UIViewController {
         self.view.backgroundColor = .black
         
         self.view.addSubview(contentStack)
-        contentStack.addArrangedSubViews([upperNavBar, pageViewControl, bottomNavBar])
+        self.view.addSubview(bottomNavBar)
+        contentStack.addArrangedSubViews([upperNavBar, pageViewControl])
         
-        bottomNavBar.addSubview(bottomNavBarStack)
-        bottomNavBarStack.addArrangedSubViews([leftSwipeButton, rightSwipeButton])
+        bottomNavBar.addSubview(collectionView)
+        bottomNavBar.addSubview(descriptionTextField)
+        bottomNavBar.addSubview(nextButton)
         
         upperNavBar.addSubview(dismissButton)
         upperNavBar.addSubview(browserTitleLabel)
@@ -223,11 +255,28 @@ public class MediaBrowser: UIViewController {
         ])
         
         NSLayoutConstraint.activate([
-            bottomNavBarStack.topAnchor.constraint(equalTo: bottomNavBar.topAnchor, constant: 8),
-            bottomNavBarStack.bottomAnchor.constraint(equalTo: bottomNavBar.bottomAnchor, constant: -8),
-            bottomNavBarStack.leadingAnchor.constraint(equalTo: bottomNavBar.leadingAnchor, constant: 16),
-            bottomNavBarStack.trailingAnchor.constraint(equalTo: bottomNavBar.trailingAnchor, constant: -16)
+            collectionView.topAnchor.constraint(equalTo: bottomNavBar.topAnchor, constant: 8),
+            collectionView.leadingAnchor.constraint(equalTo: bottomNavBar.leadingAnchor, constant: 16),
+            collectionView.trailingAnchor.constraint(equalTo: bottomNavBar.trailingAnchor, constant: 16),
+            collectionView.heightAnchor.constraint(equalToConstant: 80)
         ])
+        
+        NSLayoutConstraint.activate([
+            descriptionTextField.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 8),
+            descriptionTextField.leadingAnchor.constraint(equalTo: bottomNavBar.leadingAnchor, constant: 16),
+            descriptionTextField.bottomAnchor.constraint(equalTo: bottomNavBar.bottomAnchor, constant: -16),
+            descriptionTextField.trailingAnchor.constraint(equalTo: nextButton.leadingAnchor, constant: -16)
+        ])
+        
+        NSLayoutConstraint.activate([
+            nextButton.centerYAnchor.constraint(equalTo: descriptionTextField.centerYAnchor),
+            nextButton.trailingAnchor.constraint(equalTo: bottomNavBar.trailingAnchor, constant: -16),
+            nextButton.heightAnchor.constraint(equalToConstant: 44),
+            nextButton.widthAnchor.constraint(equalToConstant: 44)
+        ])
+        
+        nextButton.layer.cornerRadius = 22
+        nextButton.layer.masksToBounds = true
         
         NSLayoutConstraint.activate([
             dismissButton.widthAnchor.constraint(equalToConstant: 48),
@@ -248,26 +297,27 @@ public class MediaBrowser: UIViewController {
         ])
         
         NSLayoutConstraint.activate([
-            bottomNavBar.heightAnchor.constraint(equalToConstant: 64)
-        ])
-        
-        NSLayoutConstraint.activate([
             contentStack.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
             contentStack.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
             contentStack.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
-            contentStack.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -16)
+            contentStack.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: 0)
         ])
         
+        bottomConstraint = bottomNavBar.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: 0)
+        
+        NSLayoutConstraint.activate([
+            bottomNavBar.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            bottomNavBar.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+            bottomConstraint!
+        ])
     }
     
     private func addTarget() {
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didTapOnView))
-        self.view.addGestureRecognizer(tapGesture)
+        self.pageViewControl.addGestureRecognizer(tapGesture)
         
         dismissButton.addTarget(self, action: #selector(didTapOnDismissButton), for: .touchUpInside)
-        rightSwipeButton.addTarget(self, action: #selector(didTapOnRightSwipeButton), for: .touchUpInside)
-        leftSwipeButton.addTarget(self, action: #selector(didTapOnLeftSwipeButton), for: .touchUpInside)
         
         if #available(iOS 14.0, *) {
             browserOptionsButton.showsMenuAsPrimaryAction = true
@@ -279,29 +329,6 @@ public class MediaBrowser: UIViewController {
     /// View tap Action
     @objc private func didTapOnView() {
         toggleNavBarWithAnimation()
-    }
-    
-    /// Left Swipe Button action
-    @objc private func didTapOnLeftSwipeButton() {
-        
-        if selectedIndex > 0 {
-            
-            HapticManager.shared.giveLightImpactFeedback()
-            
-            self.storeInSessionBrowser(index: (selectedIndex - 1), shouldReloadPager: true)
-        }
-    }
-    
-    /// Right Swipe Button action
-    @objc private func didTapOnRightSwipeButton() {
-        
-        if selectedIndex < (toBrowseMediaTypes.count - 1) {
-            
-            HapticManager.shared.giveLightImpactFeedback()
-            
-            self.storeInSessionBrowser(index: (selectedIndex + 1), shouldReloadPager: true)
-        }
-        
     }
     
     @available(iOS 14.0, *)
@@ -351,7 +378,15 @@ public class MediaBrowser: UIViewController {
     
     @objc private func didTapOnDismissButton() {
         self.delegate?.willDismissMediaBrowserAtPageIndex(withIndex: selectedIndex, browser: self)
-        self.dismiss(animated: true)
+        self.navigationController?.popViewController(animated: true)
+    }
+    
+    @objc private func textDidChange(_ textField: UITextField) {
+        media[selectedIndex].metaData = textField.text
+    }
+    
+    @objc private func nextButtonTapped() {
+        self.delegate?.didFinishBrowsingMedia(browsers: media)
     }
     
     private func handleLoader(withStatus status: MBUploadStatus) {
@@ -371,6 +406,15 @@ public class MediaBrowser: UIViewController {
                 break
             }
         }
+    }
+    
+    func addKeyboardObserver() {
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+    
+    func removeKeyboardObservers(){
+        NotificationCenter.default.removeObserver(self)
     }
 }
 
@@ -402,6 +446,8 @@ extension MediaBrowser {
     
     /// Toggle Nav bar animation
     private func toggleNavBarWithAnimation() {
+        
+        guard !isKeyboardVisible else { return }
         
         bottomNavBar.alpha = isToolBarVisible ? 1 : 0
         upperNavBar.alpha = isToolBarVisible ? 1 : 0
@@ -447,17 +493,6 @@ extension MediaBrowser {
         }
     }
     
-    /// UpdateBrowserTitle
-    private func updateSwipeButtonInteraction(index: Int) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            self.leftSwipeButton.isEnabled = (index != 0)
-            self.leftSwipeButton.isUserInteractionEnabled = (index != 0)
-            self.rightSwipeButton.isEnabled = (index != (media.count - 1))
-            self.rightSwipeButton.isUserInteractionEnabled = (index != (media.count - 1))
-        }
-    }
-    
     /// Toggle Browser Operations Visibility
     private func toggleBrowserOperationButtonVisibility(_ state: Bool) {
         DispatchQueue.main.async { [weak self] in
@@ -476,7 +511,6 @@ extension MediaBrowser {
         }
         
         self.updateBrowserTitle(index: selectedIndex)
-        self.updateSwipeButtonInteraction(index: selectedIndex)
         
         /// Logging Current InSession Browser
         guard let currentBrowser = toBrowseMediaTypes[safeIndex: selectedIndex] else { return }
@@ -490,6 +524,14 @@ extension MediaBrowser {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             self.browserTitleLabel.isHidden = !state
+        }
+    }
+    
+    /// Reload collection view
+    private func reloadCollectionView() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.collectionView.reloadData()
         }
     }
     
@@ -518,7 +560,7 @@ extension MediaBrowser {
         
         if !media.isEmpty {
             
-            self.toBrowseMediaTypes.append(contentsOf: getMediaBrowserData())
+            self.toBrowseMediaTypes = getMediaBrowserData()
             
             hideErrorSheet()
             
@@ -534,7 +576,7 @@ extension MediaBrowser {
         
         self.toggleBrowserTitleVisibility(!media.isEmpty)
         self.toggleBrowserOperationButtonVisibility(!browserTools.isEmpty && !media.isEmpty)
-        
+        self.reloadCollectionView()
     }
     
     private func getMediaBrowserData() -> [MediaBrowserData] {
@@ -617,7 +659,7 @@ extension MediaBrowser: UXPagerViewDelegate {
     }
     
     public func pagerView(_ view: UXPagerView, didSwipeTabTo index: Int) {
-        self.storeInSessionBrowser(index: index, shouldReloadPager: false)
+        self.collectionView(self.collectionView, didSelectItemAt: IndexPath(row: index, section: 0))
     }
 }
 
@@ -647,6 +689,71 @@ extension MediaBrowser: MediaBrowserBaseViewDelegate {
     
     func didFailRenderingMedia(withIndexPath index: Int, error: MediaManagerError) {
         
+    }
+}
+
+extension MediaBrowser {
+    
+    @objc func keyboardWillShow(notification: Notification){
+        UIView.setAnimationsEnabled(true)
+        
+        if let newFrame = (notification.userInfo?[ UIResponder.keyboardFrameEndUserInfoKey ] as? NSValue)?.cgRectValue {
+            let keyBoardRect =  newFrame
+            let keyBoardHeight = keyBoardRect.height
+            bottomConstraint?.constant = -keyBoardHeight+48
+            isKeyboardVisible = true
+
+            UIView.animate(withDuration: 0.3) { [weak self] in
+                guard let self = self else { return }
+                self.view.layoutIfNeeded()
+                self.pageViewControl.set(selectedTabIndex: self.selectedIndex)
+            }
+        }
+    }
+    
+    @objc func keyboardWillHide(notification: Notification){
+        UIView.setAnimationsEnabled(true)
+        bottomConstraint?.constant = 0
+        isKeyboardVisible = false
+        
+        UIView.animate(withDuration: 0.3) { [weak self] in
+            guard let self = self else { return }
+            self.view.layoutIfNeeded()
+            self.pageViewControl.set(selectedTabIndex: self.selectedIndex)
+        }
+    }
+}
+
+extension MediaBrowser : UICollectionViewDelegate, UICollectionViewDataSource {
+    
+    public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return media.count
+    }
+    
+    public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MediaDisplayCollectionViewCell.id, for: indexPath) as? MediaDisplayCollectionViewCell, let browsable = media[safeIndex: indexPath.row] else {
+            return UICollectionViewCell()
+        }
+        cell.configure(withBrowsable: browsable)
+        return cell
+    }
+    
+    public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard var selectedMedia = media[safeIndex: indexPath.row], !selectedMedia.isSelected else { return }
+        
+        var updatedMedia = media
+        
+        if selectedIndex >= 0 && selectedIndex < updatedMedia.count {
+            updatedMedia[selectedIndex].isSelected = false
+        }
+
+        selectedMedia.isSelected = true
+        updatedMedia[indexPath.row] = selectedMedia
+        
+        media = updatedMedia
+
+        descriptionTextField.text = selectedMedia.metaData
+        self.storeInSessionBrowser(index: indexPath.row, shouldReloadPager: true)
     }
 }
 

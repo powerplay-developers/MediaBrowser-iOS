@@ -11,6 +11,10 @@ import UIKit
 // MBImage is the Image format which MediaBrowser uses to render Image based media.
 class MBImage: MediaBrowsable {
     
+    var isSelected: Bool = false
+    
+    var metaData: String?
+    
     var image: UIImage
     
     var mediaId: String?

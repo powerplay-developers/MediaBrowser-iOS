@@ -22,7 +22,7 @@ final class MBPhotoBrowserViewController: MBBrowserBaseViewController {
     private lazy var panZoomImageView: MBPanZoomImageView = {
         let img = MBPanZoomImageView()
         img.translatesAutoresizingMaskIntoConstraints = false
-        img.contentMode = .scaleAspectFit
+        img.contentMode = .scaleAspectFill
         img.isUserInteractionEnabled = true
         img.isImageZoomEnabled = MBConstants.isPhotoZoomEnabled
         return img
