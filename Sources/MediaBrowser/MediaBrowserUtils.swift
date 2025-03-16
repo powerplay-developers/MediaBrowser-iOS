@@ -143,13 +143,13 @@ extension MediaBrowserUtils {
     }
     
     /// Raw Data helper to convert any data to MediaBrowsable type
-    public static func mediaBrowsable(_ data: Data, holderImage: UIImage? = nil) -> MediaBrowsable {
-        return MBImageData(data: data, placeHolderImage: holderImage)
+    public static func mediaBrowsable(_ data: Data, holderImage: UIImage? = nil, description: String? = nil) -> MediaBrowsable {
+        return MBImageData(data: data, placeHolderImage: holderImage, metaData: description)
     }
     
     /// UIImage helper to convert any image to MediaBrowsable type
-    public static func mediaBrowsable(_ image: UIImage, mediaId: String? = nil, holderImage: UIImage? = nil) -> MediaBrowsable {
-        return MBImage(id: mediaId, image: image, placeHolderImage: holderImage)
+    public static func mediaBrowsable(_ image: UIImage, mediaId: String? = nil, holderImage: UIImage? = nil, description: String? = nil) -> MediaBrowsable {
+        return MBImage(id: mediaId, image: image, placeHolderImage: holderImage, metaData: description)
     }
 }
 

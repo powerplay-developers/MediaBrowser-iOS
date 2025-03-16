@@ -361,6 +361,25 @@ public class MediaBrowser: UIViewController {
             
         }
         
+        let annotationAction = UIAction(title: MBOperations.Annotations.rawValue) { action in
+            
+            DispatchQueue.main.async { [weak self] in
+                guard let self, let browsable = self.media[safeIndex: self.selectedIndex] else { return }
+                self.delegate?.didTapAnnotations(browser: browsable)
+            }
+        }
+        
+        let editAction = UIAction(title: MBOperations.Edit.rawValue) { action in
+            
+            if let cachedData = self.inSessionBrowser?.cachedData {
+                
+                DispatchQueue.main.async { [weak self] in
+                    guard let self else { return }
+//                    self.delegate?.didTapAnnotations(browser: browsable)
+                }
+            }
+        }
+        
         var menuChildren: [UIAction] = []
         
         browserTools.forEach { tool in
@@ -369,6 +388,11 @@ public class MediaBrowser: UIViewController {
             case .Share:
                 menuChildren.append(shareAction)
                 break
+            case .Annotations:
+                menuChildren.append(annotationAction)
+                break
+            case .Edit:
+                menuChildren.append(editAction)
             }
         }
         
@@ -433,6 +457,14 @@ public class MediaBrowser: UIViewController {
         self.inSessionBrowser = currentBrowser
         
         self.delegate?.mediaBrowserDidSwipe(withIndex: selectedIndex, browser: self)
+    }
+    
+    public func getSelectedIndex() -> Int {
+        return selectedIndex
+    }
+    
+    public func reloadPager() {
+        self.pageViewControl.reloadView(withSelectedIndex: selectedIndex)
     }
 }
 

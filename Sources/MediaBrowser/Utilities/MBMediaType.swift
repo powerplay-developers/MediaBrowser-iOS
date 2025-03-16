@@ -94,6 +94,8 @@ enum MBDocumentType: String, CaseIterable {
 // MARK: - Browser Operations
 public enum MBOperations: String {
     case Share = "Share"
+    case Annotations = "Annotations"
+    case Edit = "Edit"
 }
 
 // MARK: - Browser Upload State

@@ -29,7 +29,7 @@ public protocol MediaBrowsable {
     var metaData: String? { get set }
     
     /**
-    Remarks added against the media
+    media is selected or not
      */
     var isSelected: Bool { get set }
     

@@ -43,6 +43,13 @@ public protocol MediaBrowserDelegate: AnyObject {
           - Parameter browsers: reference to all the Media
      */
     func didFinishBrowsingMedia(browsers: [MediaBrowsable])
+    
+    /**
+     Tells the delegate that the medias are ready for upload
+          
+          - Parameter browser: reference to the Media
+     */
+    func didTapAnnotations(browser: MediaBrowsable)
 }
 
 @available(iOS 13.0, *)
@@ -55,4 +62,6 @@ extension MediaBrowserDelegate {
     func mediaBrowserControlVisibilityToggled(browser: MediaBrowser, hidden: Bool) { }
     
     func didFinishBrowsingMedia(browsers: [MediaBrowsable]) { }
+    
+    func didTapAnnotations(browser: MediaBrowsable) { }
 }
