@@ -138,8 +138,8 @@ public class MediaBrowserUtils {
 extension MediaBrowserUtils {
     
     /// URL String helper to convert any url to MediaBrowsable type
-    public static func mediaBrowsable(_ urlString: String, holderImage: UIImage? = nil) -> MediaBrowsable {
-        return MBMediaUrl(url: urlString, placeHolderImage: holderImage)
+    public static func mediaBrowsable(_ urlString: String, holderImage: UIImage? = nil, description: String? = nil) -> MediaBrowsable {
+        return MBMediaUrl(url: urlString, placeHolderImage: holderImage, metaData: description)
     }
     
     /// Raw Data helper to convert any data to MediaBrowsable type

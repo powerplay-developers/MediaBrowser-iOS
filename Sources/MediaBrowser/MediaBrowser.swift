@@ -12,7 +12,7 @@ import UXPagerView
 @available(iOS 13.0, *)
 public class MediaBrowser: UIViewController {
     
-    private lazy var pageViewControl: UXPagerView = {
+    private(set) lazy var pageViewControl: UXPagerView = {
         let pagerView = UXPagerView()
         pagerView.delegate = self
         pagerView.set(isTabViewHidden: true)
@@ -21,7 +21,7 @@ public class MediaBrowser: UIViewController {
         return pagerView
     }()
     
-    private lazy var dismissButton: UIButton = {
+    private(set) lazy var dismissButton: UIButton = {
         let btn = UIButton()
         btn.translatesAutoresizingMaskIntoConstraints = false
         btn.setImage(UIImage(systemName: "xmark", withConfiguration: UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold)), for: .normal)
@@ -29,7 +29,7 @@ public class MediaBrowser: UIViewController {
         return btn
     }()
     
-    private lazy var browserTitleLabel: UILabel = {
+    private(set) lazy var browserTitleLabel: UILabel = {
         let lbl = UILabel()
         lbl.font = .systemFont(ofSize: 18)
         lbl.adjustsFontSizeToFitWidth = true
@@ -39,7 +39,7 @@ public class MediaBrowser: UIViewController {
         return lbl
     }()
     
-    private lazy var browserOptionsButton: UIButton = {
+    private(set) lazy var browserOptionsButton: UIButton = {
         let btn = UIButton()
         btn.translatesAutoresizingMaskIntoConstraints = false
         btn.setImage(UIImage(systemName: "line.3.horizontal.decrease.circle", withConfiguration: UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold)), for: .normal)
@@ -47,13 +47,13 @@ public class MediaBrowser: UIViewController {
         return btn
     }()
     
-    private lazy var upperNavBar: UIView = {
+    private(set) lazy var upperNavBar: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
-    private lazy var bottomNavBar: UIView = {
+    private(set) lazy var bottomNavBar: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .black.withAlphaComponent(0.5)
@@ -108,7 +108,7 @@ public class MediaBrowser: UIViewController {
         return collectionView
     }()
     
-    private lazy var contentStack: UIStackView = {
+    private(set) lazy var contentStack: UIStackView = {
         let stck = UIStackView()
         stck.translatesAutoresizingMaskIntoConstraints = false
         stck.axis = .vertical
@@ -133,7 +133,7 @@ public class MediaBrowser: UIViewController {
     // MARK: - Stored Properties
     
     /// Medias to be browsed by the browser
-    private var media: [MediaBrowsable] = [] {
+    private(set) var media: [MediaBrowsable] = [] {
         didSet {
             computeBrowsableData()
         }
@@ -143,7 +143,7 @@ public class MediaBrowser: UIViewController {
     private var toBrowseMediaTypes: [MediaBrowserData] = []
     
     /// Set first launch browser index
-    private var selectedIndex: Int = 0
+    private(set) var selectedIndex: Int = 0
     
     /// Flag to log current in session browser
     private var inSessionBrowser: MediaBrowserData?
@@ -229,7 +229,7 @@ public class MediaBrowser: UIViewController {
         self.toggleBrowserOperationButtonVisibility(!browserTools.isEmpty)
     }
     
-    private func addViews() {
+    func addViews() {
         self.view.backgroundColor = .black
         
         self.view.addSubview(contentStack)
@@ -245,7 +245,7 @@ public class MediaBrowser: UIViewController {
         upperNavBar.addSubview(browserOptionsButton)
     }
     
-    private func layoutConstraints() {
+    func layoutConstraints() {
         
         NSLayoutConstraint.activate([
             browserTitleLabel.topAnchor.constraint(equalTo: upperNavBar.topAnchor, constant: 16),
@@ -376,7 +376,7 @@ public class MediaBrowser: UIViewController {
         self.browserOptionsButton.menu = menu
     }
     
-    @objc private func didTapOnDismissButton() {
+    @objc func didTapOnDismissButton() {
         self.delegate?.willDismissMediaBrowserAtPageIndex(withIndex: selectedIndex, browser: self)
         self.navigationController?.popViewController(animated: true)
     }
@@ -415,6 +415,24 @@ public class MediaBrowser: UIViewController {
     
     func removeKeyboardObservers(){
         NotificationCenter.default.removeObserver(self)
+    }
+    
+    /// Set Browser selection index
+    func storeInSessionBrowser(index: Int, shouldReloadPager: Bool = false) {
+        
+        selectedIndex = index
+        
+        if shouldReloadPager {
+            self.pageViewControl.set(selectedTabIndex: selectedIndex)
+        }
+        
+        self.updateBrowserTitle(index: selectedIndex)
+        
+        /// Logging Current InSession Browser
+        guard let currentBrowser = toBrowseMediaTypes[safeIndex: selectedIndex] else { return }
+        self.inSessionBrowser = currentBrowser
+        
+        self.delegate?.mediaBrowserDidSwipe(withIndex: selectedIndex, browser: self)
     }
 }
 
@@ -499,24 +517,6 @@ extension MediaBrowser {
             guard let self else { return }
             self.browserOptionsButton.isHidden = !state
         }
-    }
-    
-    /// Set Browser selection index
-    private func storeInSessionBrowser(index: Int, shouldReloadPager: Bool = false) {
-        
-        selectedIndex = index
-        
-        if shouldReloadPager {
-            self.pageViewControl.set(selectedTabIndex: selectedIndex)
-        }
-        
-        self.updateBrowserTitle(index: selectedIndex)
-        
-        /// Logging Current InSession Browser
-        guard let currentBrowser = toBrowseMediaTypes[safeIndex: selectedIndex] else { return }
-        self.inSessionBrowser = currentBrowser
-        
-        self.delegate?.mediaBrowserDidSwipe(withIndex: selectedIndex, browser: self)
     }
     
     /// Toggle Browser title Visibility

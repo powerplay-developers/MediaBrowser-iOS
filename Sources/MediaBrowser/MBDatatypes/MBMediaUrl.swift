@@ -21,9 +21,10 @@ class MBMediaUrl: MediaBrowsable {
     
     var placeHolderImage: UIImage?
     
-    init(url: String, placeHolderImage: UIImage? = UIImage()) {
+    init(url: String, placeHolderImage: UIImage? = UIImage(), metaData: String? = nil) {
         self.url = url
         self.placeHolderImage = placeHolderImage
+        self.metaData = metaData
     }
     
     /// Transforms the MediaBrowsable data to MBMediaType
