@@ -78,5 +78,6 @@ public class MediaViewer: MediaBrowser {
     override func storeInSessionBrowser(index: Int, shouldReloadPager: Bool = false) {
         super.storeInSessionBrowser(index: index, shouldReloadPager: shouldReloadPager)
         descriptionView.setDescription(media[safeIndex: index]?.metaData ?? "")
+        descriptionView.isHidden = media[safeIndex: index]?.metaData?.isEmpty ?? true
     }
 }

@@ -36,9 +36,9 @@ class DescriptionView: UIView {
     
     private let hideButton: UIButton = {
         let button = UIButton(type: .system)
-        let hideImage = UIImage(named: "eye.slash", in: Bundle.module, compatibleWith: nil)
+        let hideImage = UIImage(named: "eye.open", in: Bundle.module, compatibleWith: nil)
         button.setImage(hideImage, for: .normal)
-        button.setTitle(" Hide", for: .normal)
+        button.setTitle(" View", for: .normal)
         button.tintColor = .white
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 14)
         button.addTarget(self, action: #selector(toggleDescription), for: .touchUpInside)
@@ -58,6 +58,9 @@ class DescriptionView: UIView {
     private var isDescriptionHidden = true {
         didSet {
             descriptionLabel.isHidden = isDescriptionHidden
+            hideButton.setTitle(isDescriptionHidden ? " View" : " Hide", for: .normal)
+            let image = isDescriptionHidden ? UIImage(named: "eye.open", in: Bundle.module, compatibleWith: nil) : UIImage(named: "eye.slash", in: Bundle.module, compatibleWith: nil)
+            hideButton.setImage(image, for: .normal)
         }
     }
     
@@ -101,7 +104,7 @@ class DescriptionView: UIView {
     }
     
     @objc private func toggleDescription() {
-        isDescriptionHidden.toggle()
+        isDescriptionHidden = !isDescriptionHidden
         
         UIView.animate(withDuration: 0.3) {
             self.descriptionLabel.alpha = self.isDescriptionHidden ? 0 : 1

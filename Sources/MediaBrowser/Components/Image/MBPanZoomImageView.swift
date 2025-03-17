@@ -17,6 +17,7 @@ class MBPanZoomImageView: UIScrollView {
     lazy var imageView: UIImageView = {
         let img = UIImageView()
         img.translatesAutoresizingMaskIntoConstraints = false
+        img.contentMode = .scaleAspectFit
         return img
     }()
     

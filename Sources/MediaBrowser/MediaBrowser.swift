@@ -389,7 +389,9 @@ public class MediaBrowser: UIViewController {
                 menuChildren.append(shareAction)
                 break
             case .Annotations:
-                menuChildren.append(annotationAction)
+                if shouldShowAnnotations() {
+                    menuChildren.append(annotationAction)
+                }
                 break
             case .Edit:
                 menuChildren.append(editAction)
@@ -398,6 +400,16 @@ public class MediaBrowser: UIViewController {
         
         let menu = UIMenu(title: "", children: menuChildren)
         self.browserOptionsButton.menu = menu
+    }
+    
+    private func shouldShowAnnotations() -> Bool {
+        guard let mediaType = toBrowseMediaTypes[safeIndex: selectedIndex]?.mediaType else { return true }
+        switch mediaType {
+        case .Image(_), .Photo(_):
+            return true
+        default:
+            return false
+        }
     }
     
     @objc func didTapOnDismissButton() {
