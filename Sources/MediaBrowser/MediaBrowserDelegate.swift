@@ -50,6 +50,14 @@ public protocol MediaBrowserDelegate: AnyObject {
           - Parameter browser: reference to the Media
      */
     func didTapAnnotations(browser: MediaBrowsable)
+    
+    /**
+     Tells the delegate that the media needs to be deleted
+          
+          - Parameter browser: reference to the Media
+          - Parameter index: index the media needs to be removed
+     */
+    func didDeleteMedia(browser: MediaBrowsable, index: Int)
 }
 
 @available(iOS 13.0, *)
@@ -64,4 +72,6 @@ extension MediaBrowserDelegate {
     func didFinishBrowsingMedia(browsers: [MediaBrowsable]) { }
     
     func didTapAnnotations(browser: MediaBrowsable) { }
+    
+    func didDeleteMedia(browser: MediaBrowsable, index: Int) { }
 }

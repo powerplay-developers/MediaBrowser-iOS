@@ -7,8 +7,15 @@
 
 import UIKit
 
+public protocol MediaViewerDelegate: AnyObject {
+    func mediaViewer(_ mediaViewer: MediaViewer, didTapEditButtonAt index: Int)
+    func mediaViewer(_ mediaViewer: MediaViewer, willDismissWith selectedIndex: Int)
+}
+
 @available(iOS 13.0, *)
 public class MediaViewer: MediaBrowser {
+    
+    public weak var viewerDelegate: MediaViewerDelegate?
     
     private lazy var descriptionView: DescriptionView = {
         let view = DescriptionView()
@@ -70,14 +77,76 @@ public class MediaViewer: MediaBrowser {
         ])
     }
     
+    @available(iOS 14.0, *)
+    override func didTapOnBrowserOptionButton(sender: UIButton) {
+        
+        let shareAction = UIAction(title: MBOperations.Share.rawValue) { action in
+            
+            if let cachedData = self.inSessionBrowser?.cachedData {
+                
+                DispatchQueue.global(qos: .background).async { [weak self] in
+                    guard let self else { return }
+                    
+                    cachedData.generateShareableData { [weak self] (items, status, error) in
+                        
+                        self?.handleLoader(withStatus: status)
+                        
+                        if let items {
+                            self?.showShareSheet(withItems: [items])
+                        }
+                        
+                        if let error {
+                            self?.showAlert(title: "Error", message: error.localizedDescription)
+                        }
+                    }
+                }
+            } else {
+                
+                self.showAlert(title: "Warning", message: "The media is currently undergoing rendering; please wait for the data to be processed before sharing.")
+            }
+            
+        }
+        
+        let editAction = UIAction(title: MBOperations.Edit.rawValue) { action in
+            
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.viewerDelegate?.mediaViewer(self, didTapEditButtonAt: self.selectedIndex)
+            }
+        }
+        
+        var menuChildren: [UIAction] = []
+        
+        browserTools.forEach { tool in
+            
+            switch tool {
+            case .Share:
+                menuChildren.append(shareAction)
+                break
+            case .Edit:
+                menuChildren.append(editAction)
+                break
+            default: break
+            }
+        }
+        
+        let menu = UIMenu(title: "", children: menuChildren)
+        self.browserOptionsButton.menu = menu
+    }
+    
     override func didTapOnDismissButton() {
-        self.delegate?.willDismissMediaBrowserAtPageIndex(withIndex: selectedIndex, browser: self)
+        self.viewerDelegate?.mediaViewer(self, willDismissWith: selectedIndex)
         self.dismiss(animated: true)
     }
     
     override func storeInSessionBrowser(index: Int, shouldReloadPager: Bool = false) {
         super.storeInSessionBrowser(index: index, shouldReloadPager: shouldReloadPager)
-        descriptionView.setDescription(media[safeIndex: index]?.metaData ?? "")
-        descriptionView.isHidden = media[safeIndex: index]?.metaData?.isEmpty ?? true
+        if let comment = media[safeIndex: index]?.metaData, !comment.isBlank() {
+            descriptionView.isHidden = false
+            descriptionView.setDescription(comment)
+        } else {
+            descriptionView.isHidden = true
+            descriptionView.setDescription("")
+        }
     }
 }

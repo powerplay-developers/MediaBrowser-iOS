@@ -42,7 +42,7 @@ public class MediaBrowser: UIViewController {
     private(set) lazy var browserOptionsButton: UIButton = {
         let btn = UIButton()
         btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.setImage(UIImage(systemName: "line.3.horizontal.decrease.circle", withConfiguration: UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold)), for: .normal)
+        btn.setImage(UIImage(named: "three-dots-pdf", in: Bundle.module, compatibleWith: nil), for: .normal)
         btn.tintColor = MBConstants.Color.browserTint
         return btn
     }()
@@ -72,6 +72,7 @@ public class MediaBrowser: UIViewController {
         tf.layer.cornerRadius = 8
         tf.layer.masksToBounds = true
         tf.addDoneButtonOnKeyboard()
+        tf.delegate = self
         tf.addTarget(self, action: #selector(textDidChange(_:)), for: .editingChanged)
         return tf
     }()
@@ -146,13 +147,13 @@ public class MediaBrowser: UIViewController {
     private(set) var selectedIndex: Int = 0
     
     /// Flag to log current in session browser
-    private var inSessionBrowser: MediaBrowserData?
+    private(set) var inSessionBrowser: MediaBrowserData?
     
     /// NavBar Visibility Toggle
     private var isToolBarVisible: Bool = true
     
     /// Available Browser Tools
-    private var browserTools: [MBOperations] = []
+    private(set) var browserTools: [MBOperations] = []
     
     /// Default PlaceHolder Image for all browsers
     /*
@@ -369,17 +370,6 @@ public class MediaBrowser: UIViewController {
             }
         }
         
-        let editAction = UIAction(title: MBOperations.Edit.rawValue) { action in
-            
-            if let cachedData = self.inSessionBrowser?.cachedData {
-                
-                DispatchQueue.main.async { [weak self] in
-                    guard let self else { return }
-//                    self.delegate?.didTapAnnotations(browser: browsable)
-                }
-            }
-        }
-        
         var menuChildren: [UIAction] = []
         
         browserTools.forEach { tool in
@@ -393,8 +383,7 @@ public class MediaBrowser: UIViewController {
                     menuChildren.append(annotationAction)
                 }
                 break
-            case .Edit:
-                menuChildren.append(editAction)
+            default: break
             }
         }
         
@@ -425,7 +414,7 @@ public class MediaBrowser: UIViewController {
         self.delegate?.didFinishBrowsingMedia(browsers: media)
     }
     
-    private func handleLoader(withStatus status: MBUploadStatus) {
+    func handleLoader(withStatus status: MBUploadStatus) {
         
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
@@ -478,6 +467,25 @@ public class MediaBrowser: UIViewController {
     public func reloadPager() {
         self.pageViewControl.reloadView(withSelectedIndex: selectedIndex)
     }
+    
+    func removeMedia(atIndex index: Int) {
+        media.remove(at: index)
+    }
+}
+
+extension MediaBrowser: UITextFieldDelegate {
+    
+    public func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        // Get current text
+        let currentText = textField.text ?? ""
+        
+        // Create updated text after change
+        guard let textRange = Range(range, in: currentText) else { return true }
+        let updatedText = currentText.replacingCharacters(in: textRange, with: string)
+        
+        // Limit to 200 characters
+        return updatedText.count <= 200
+    }
 }
 
 // MARK: - Utility Methods
@@ -492,6 +500,7 @@ extension MediaBrowser {
         self.media = media
         let preSelectedIndex = (index < media.count) ? index : 0
         self.pageViewControl.defaultSelectedTab = preSelectedIndex
+        self.descriptionTextField.text = media[preSelectedIndex].metaData
         self.storeInSessionBrowser(index: preSelectedIndex, shouldReloadPager: false)
     }
     
@@ -533,7 +542,7 @@ extension MediaBrowser {
     }
     
     /// Show Share Sheet
-    private func showShareSheet(withItems items: [Any]) {
+    func showShareSheet(withItems items: [Any]) {
         
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
@@ -580,7 +589,7 @@ extension MediaBrowser {
     }
     
     /// Alert View
-    private func showAlert(title: String, message: String) {
+    func showAlert(title: String, message: String) {
         
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
@@ -783,7 +792,10 @@ extension MediaBrowser : UICollectionViewDelegate, UICollectionViewDataSource {
     }
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard var selectedMedia = media[safeIndex: indexPath.row], !selectedMedia.isSelected else { return }
+        guard var selectedMedia = media[safeIndex: indexPath.row], !selectedMedia.isSelected else {
+            self.delegate?.didDeleteMedia(browser: self, index: indexPath.row)
+            return
+        }
         
         var updatedMedia = media
         

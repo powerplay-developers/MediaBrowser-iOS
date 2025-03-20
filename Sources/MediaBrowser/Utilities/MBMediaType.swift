@@ -96,6 +96,7 @@ public enum MBOperations: String {
     case Share = "Share"
     case Annotations = "Annotations"
     case Edit = "Edit"
+    case Delete = "Delete"
 }
 
 // MARK: - Browser Upload State

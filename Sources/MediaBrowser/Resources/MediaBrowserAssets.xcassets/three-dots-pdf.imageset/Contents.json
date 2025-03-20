@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "three-dots-pdf.pdf",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
