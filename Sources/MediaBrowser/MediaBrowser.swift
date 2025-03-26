@@ -499,6 +499,7 @@ extension MediaBrowser {
     public func render(media: [MediaBrowsable], withSelectedIndex index: Int = 0) {
         self.media = media
         let preSelectedIndex = (index < media.count) ? index : 0
+        self.selectedIndex = preSelectedIndex
         self.pageViewControl.defaultSelectedTab = preSelectedIndex
         self.descriptionTextField.text = media[preSelectedIndex].metaData
         self.storeInSessionBrowser(index: preSelectedIndex, shouldReloadPager: false)

@@ -57,7 +57,7 @@ public protocol MediaBrowserDelegate: AnyObject {
           - Parameter browser: reference to the Media
           - Parameter index: index the media needs to be removed
      */
-    func didDeleteMedia(browser: MediaBrowsable, index: Int)
+    func didDeleteMedia(browser: MediaBrowser, index: Int)
 }
 
 @available(iOS 13.0, *)
