@@ -100,7 +100,7 @@ public enum MBOperations: String {
 }
 
 // MARK: - Browser Upload State
-enum MBUploadStatus {
+public enum MBUploadStatus {
     case Inprogress
     case Failed
     case Completed

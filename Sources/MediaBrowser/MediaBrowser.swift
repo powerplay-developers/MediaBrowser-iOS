@@ -414,7 +414,7 @@ public class MediaBrowser: UIViewController {
         self.delegate?.didFinishBrowsingMedia(browsers: media)
     }
     
-    func handleLoader(withStatus status: MBUploadStatus) {
+    public func handleLoader(withStatus status: MBUploadStatus) {
         
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
@@ -517,7 +517,7 @@ extension MediaBrowser {
 extension MediaBrowser {
     
     /// Toggle Nav bar animation
-    private func toggleNavBarWithAnimation() {
+    @objc func toggleNavBarWithAnimation() {
         
         guard !isKeyboardVisible else { return }
         

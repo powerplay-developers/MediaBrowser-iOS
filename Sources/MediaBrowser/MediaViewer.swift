@@ -134,6 +134,22 @@ public class MediaViewer: MediaBrowser {
         self.browserOptionsButton.menu = menu
     }
     
+    override func toggleNavBarWithAnimation() {
+        super.toggleNavBarWithAnimation()
+        
+        if descriptionView.alpha == 1.0 {
+            UIView.animate(withDuration: 0.5, animations: { [weak self] in
+                self?.descriptionView.alpha = 0.0
+                
+            }) { (_) in }
+        } else {
+            descriptionView.isHidden = false
+            UIView.animate(withDuration: 0.5) { [weak self] in
+                self?.descriptionView.alpha = 1.0
+            }
+        }
+    }
+    
     override func didTapOnDismissButton() {
         self.viewerDelegate?.mediaViewer(self, willDismissWith: selectedIndex)
         self.dismiss(animated: true)
