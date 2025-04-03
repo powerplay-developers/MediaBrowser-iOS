@@ -7,13 +7,7 @@
 
 import UIKit
 
-protocol DescriptionViewDelegate: AnyObject {
-    func descriptionViewDidTap(_ isHidden: Bool)
-}
-
 class DescriptionView: UIView {
-    
-    weak var delegate: DescriptionViewDelegate?
     
     private let stackView: UIStackView = {
         let stack = UIStackView()

@@ -478,6 +478,9 @@ public class MediaBrowser: UIViewController {
         /// Logging Current InSession Browser
         guard let currentBrowser = toBrowseMediaTypes[safeIndex: selectedIndex] else { return }
         self.inSessionBrowser = currentBrowser
+        self.counterLabel.text = "\(media[safeIndex: selectedIndex]?.metaData?.count ?? 0) / 200"
+        self.counterLabel.isHidden = media[safeIndex: selectedIndex]?.metaData?.count ?? 0 <= 150
+        self.counterLabelHeightConstraint?.constant = (media[safeIndex: selectedIndex]?.metaData?.count ?? 0 <= 150) ? 0 : 20
         
         self.delegate?.mediaBrowserDidSwipe(withIndex: selectedIndex, browser: self)
     }

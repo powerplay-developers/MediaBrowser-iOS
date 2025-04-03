@@ -20,8 +20,7 @@ public class MediaViewer: MediaBrowser {
     private lazy var descriptionView: DescriptionView = {
         let view = DescriptionView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .black.withAlphaComponent(0.5)
-        view.delegate = self
+        view.backgroundColor = .black
         return view
     }()
     
@@ -202,6 +201,7 @@ public class MediaViewer: MediaBrowser {
                 self?.rightSwipeButton.isHidden = true
             }) { [weak self] _ in
                 self?.descriptionView.isHidden = true
+                self?.descriptionView.hideDescriptionView()
             }
         } else if let comment = media[safeIndex: selectedIndex]?.metaData, !comment.isBlank() {
             UIView.animate(withDuration: 0.5, animations: { [weak self] in
@@ -212,10 +212,10 @@ public class MediaViewer: MediaBrowser {
                 self?.descriptionView.isHidden = false
             }
         } else {
-            UIView.animate(withDuration: 0.5) { [weak self] in
+            UIView.animate(withDuration: 0.5, animations: { [weak self] in
                 self?.leftSwipeButton.isHidden = false
                 self?.rightSwipeButton.isHidden = false
-            }
+            })
         }
     }
     
@@ -232,21 +232,6 @@ public class MediaViewer: MediaBrowser {
         } else {
             descriptionView.isHidden = true
             descriptionView.setDescription("")
-        }
-    }
-}
-
-extension MediaViewer: DescriptionViewDelegate {
-    
-    func descriptionViewDidTap(_ isHidden: Bool) {
-        if !isHidden {
-            UIView.animate(withDuration: 0.5, animations: {
-                self.contentStack.transform = CGAffineTransform(translationX: 0, y: -50)
-            })
-        } else {
-            UIView.animate(withDuration: 0.5, animations: {
-                self.contentStack.transform = .identity
-            })
         }
     }
 }
