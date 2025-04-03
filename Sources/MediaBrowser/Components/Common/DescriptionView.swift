@@ -7,7 +7,13 @@
 
 import UIKit
 
+protocol DescriptionViewDelegate: AnyObject {
+    func descriptionViewDidTap(_ isHidden: Bool)
+}
+
 class DescriptionView: UIView {
+    
+    weak var delegate: DescriptionViewDelegate?
     
     private let stackView: UIStackView = {
         let stack = UIStackView()
@@ -105,6 +111,8 @@ class DescriptionView: UIView {
     
     @objc private func toggleDescription() {
         isDescriptionHidden = !isDescriptionHidden
+        
+        delegate?.descriptionViewDidTap(isDescriptionHidden)
         
         UIView.animate(withDuration: 0.3) {
             self.descriptionLabel.alpha = self.isDescriptionHidden ? 0 : 1

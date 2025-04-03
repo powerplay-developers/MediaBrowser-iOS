@@ -21,13 +21,32 @@ public class MediaViewer: MediaBrowser {
         let view = DescriptionView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .black.withAlphaComponent(0.5)
+        view.delegate = self
         return view
+    }()
+    
+    private lazy var leftSwipeButton: UIButton = {
+        let btn = UIButton()
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        btn.setImage(UIImage(named: "left-chevron-pdf", in: Bundle.module, compatibleWith: nil), for: .normal)
+        btn.addTarget(self, action: #selector(didTapOnLeftSwipeButton), for: .touchUpInside)
+        return btn
+    }()
+    
+    private lazy var rightSwipeButton: UIButton = {
+        let btn = UIButton()
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        btn.setImage(UIImage(named: "right-chevron-pdf", in: Bundle.module, compatibleWith: nil), for: .normal)
+        btn.addTarget(self, action: #selector(didTapOnRightSwipeButton), for: .touchUpInside)
+        return btn
     }()
     
     override func addViews() {
         self.view.backgroundColor = .black
         
         self.view.addSubview(contentStack)
+        self.view.addSubview(leftSwipeButton)
+        self.view.addSubview(rightSwipeButton)
         self.view.addSubview(descriptionView)
         contentStack.addArrangedSubViews([upperNavBar, pageViewControl])
         
@@ -75,6 +94,43 @@ public class MediaViewer: MediaBrowser {
             descriptionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
             descriptionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor)
         ])
+        
+        NSLayoutConstraint.activate([
+            leftSwipeButton.centerYAnchor.constraint(equalTo: self.view.centerYAnchor),
+            leftSwipeButton.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 16),
+            leftSwipeButton.widthAnchor.constraint(equalToConstant: 32),
+            leftSwipeButton.heightAnchor.constraint(equalToConstant: 32)
+        ])
+        
+        NSLayoutConstraint.activate([
+            rightSwipeButton.centerYAnchor.constraint(equalTo: self.view.centerYAnchor),
+            rightSwipeButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -16),
+            rightSwipeButton.widthAnchor.constraint(equalToConstant: 32),
+            rightSwipeButton.heightAnchor.constraint(equalToConstant: 32)
+        ])
+    }
+    
+    /// Left Swipe Button action
+    @objc private func didTapOnLeftSwipeButton() {
+        
+        if selectedIndex > 0 {
+            
+            HapticManager.shared.giveLightImpactFeedback()
+            
+            self.storeInSessionBrowser(index: (selectedIndex - 1), shouldReloadPager: true)
+        }
+    }
+    
+    /// Right Swipe Button action
+    @objc private func didTapOnRightSwipeButton() {
+        
+        if selectedIndex < (toBrowseMediaTypes.count - 1) {
+            
+            HapticManager.shared.giveLightImpactFeedback()
+            
+            self.storeInSessionBrowser(index: (selectedIndex + 1), shouldReloadPager: true)
+        }
+        
     }
     
     @available(iOS 14.0, *)
@@ -124,7 +180,9 @@ public class MediaViewer: MediaBrowser {
                 menuChildren.append(shareAction)
                 break
             case .Edit:
-                menuChildren.append(editAction)
+                if shouldShowAnnotations() {
+                    menuChildren.append(editAction)
+                }
                 break
             default: break
             }
@@ -140,12 +198,23 @@ public class MediaViewer: MediaBrowser {
         if descriptionView.alpha == 1.0 {
             UIView.animate(withDuration: 0.5, animations: { [weak self] in
                 self?.descriptionView.alpha = 0.0
-                
-            }) { (_) in }
-        } else {
-            descriptionView.isHidden = false
-            UIView.animate(withDuration: 0.5) { [weak self] in
+                self?.leftSwipeButton.isHidden = true
+                self?.rightSwipeButton.isHidden = true
+            }) { [weak self] _ in
+                self?.descriptionView.isHidden = true
+            }
+        } else if let comment = media[safeIndex: selectedIndex]?.metaData, !comment.isBlank() {
+            UIView.animate(withDuration: 0.5, animations: { [weak self] in
                 self?.descriptionView.alpha = 1.0
+                self?.leftSwipeButton.isHidden = false
+                self?.rightSwipeButton.isHidden = false
+            }) { [weak self] _ in
+                self?.descriptionView.isHidden = false
+            }
+        } else {
+            UIView.animate(withDuration: 0.5) { [weak self] in
+                self?.leftSwipeButton.isHidden = false
+                self?.rightSwipeButton.isHidden = false
             }
         }
     }
@@ -163,6 +232,21 @@ public class MediaViewer: MediaBrowser {
         } else {
             descriptionView.isHidden = true
             descriptionView.setDescription("")
+        }
+    }
+}
+
+extension MediaViewer: DescriptionViewDelegate {
+    
+    func descriptionViewDidTap(_ isHidden: Bool) {
+        if !isHidden {
+            UIView.animate(withDuration: 0.5, animations: {
+                self.contentStack.transform = CGAffineTransform(translationX: 0, y: -50)
+            })
+        } else {
+            UIView.animate(withDuration: 0.5, animations: {
+                self.contentStack.transform = .identity
+            })
         }
     }
 }

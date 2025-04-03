@@ -109,6 +109,16 @@ public class MediaBrowser: UIViewController {
         return collectionView
     }()
     
+    private let counterLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.font = UIFont.systemFont(ofSize: 12)
+        label.text = "0/200"
+        label.isHidden = true
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
     private(set) lazy var contentStack: UIStackView = {
         let stck = UIStackView()
         stck.translatesAutoresizingMaskIntoConstraints = false
@@ -141,7 +151,7 @@ public class MediaBrowser: UIViewController {
     }
     
     /// Set of media types to browse
-    private var toBrowseMediaTypes: [MediaBrowserData] = []
+    private(set) var toBrowseMediaTypes: [MediaBrowserData] = []
     
     /// Set first launch browser index
     private(set) var selectedIndex: Int = 0
@@ -176,6 +186,9 @@ public class MediaBrowser: UIViewController {
     
     /// Bottom Contstraint for the view
     private var bottomConstraint: NSLayoutConstraint?
+    
+    /// Bottom Constraint for counter label
+    private var counterLabelHeightConstraint: NSLayoutConstraint?
     
     /// Keyboard visbility Contstraint for the view
     private var isKeyboardVisible: Bool = false
@@ -240,6 +253,7 @@ public class MediaBrowser: UIViewController {
         bottomNavBar.addSubview(collectionView)
         bottomNavBar.addSubview(descriptionTextField)
         bottomNavBar.addSubview(nextButton)
+        bottomNavBar.addSubview(counterLabel)
         
         upperNavBar.addSubview(dismissButton)
         upperNavBar.addSubview(browserTitleLabel)
@@ -265,8 +279,16 @@ public class MediaBrowser: UIViewController {
         NSLayoutConstraint.activate([
             descriptionTextField.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 8),
             descriptionTextField.leadingAnchor.constraint(equalTo: bottomNavBar.leadingAnchor, constant: 16),
-            descriptionTextField.bottomAnchor.constraint(equalTo: bottomNavBar.bottomAnchor, constant: -16),
             descriptionTextField.trailingAnchor.constraint(equalTo: nextButton.leadingAnchor, constant: -16)
+        ])
+        
+        counterLabelHeightConstraint = counterLabel.heightAnchor.constraint(equalToConstant: 0)
+        
+        NSLayoutConstraint.activate([
+            counterLabel.topAnchor.constraint(equalTo: descriptionTextField.bottomAnchor, constant: 8),
+            counterLabel.bottomAnchor.constraint(equalTo: bottomNavBar.bottomAnchor, constant: -16),
+            counterLabel.trailingAnchor.constraint(equalTo: descriptionTextField.trailingAnchor),
+            counterLabelHeightConstraint!
         ])
         
         NSLayoutConstraint.activate([
@@ -391,13 +413,13 @@ public class MediaBrowser: UIViewController {
         self.browserOptionsButton.menu = menu
     }
     
-    private func shouldShowAnnotations() -> Bool {
+    func shouldShowAnnotations() -> Bool {
         guard let mediaType = toBrowseMediaTypes[safeIndex: selectedIndex]?.mediaType else { return true }
         switch mediaType {
-        case .Image(_), .Photo(_):
-            return true
-        default:
+        case .Video(_):
             return false
+        default:
+            return true
         }
     }
     
@@ -483,8 +505,16 @@ extension MediaBrowser: UITextFieldDelegate {
         guard let textRange = Range(range, in: currentText) else { return true }
         let updatedText = currentText.replacingCharacters(in: textRange, with: string)
         
-        // Limit to 200 characters
-        return updatedText.count <= 200
+        // Restrict input to 200 characters
+        if updatedText.count > 200 {
+            return false
+        }
+        
+        counterLabel.text = "\(updatedText.count)/200"
+        counterLabel.isHidden = updatedText.count <= 150
+        counterLabelHeightConstraint?.constant = (updatedText.count <= 150) ? 0 : 20
+
+        return true
     }
 }
 

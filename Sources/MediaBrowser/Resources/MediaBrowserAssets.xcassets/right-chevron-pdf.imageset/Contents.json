@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "right-chevron-pdf.pdf",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

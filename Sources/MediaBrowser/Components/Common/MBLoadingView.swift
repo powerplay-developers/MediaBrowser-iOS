@@ -24,7 +24,7 @@ class MBLoadingView {
         let lbl = PaddedLabel()
         lbl.font = .systemFont(ofSize: 14)
         lbl.textColor = .black
-        lbl.backgroundColor = .white
+        lbl.backgroundColor = .clear
         lbl.layer.cornerRadius = 4
         lbl.sizeToFit()
         return lbl
@@ -60,8 +60,11 @@ class MBLoadingView {
     }
     
     
-    private func addViews(){
-        
+    private func addViews() {
+        overlayView.translatesAutoresizingMaskIntoConstraints = false
+        loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
+        titleLbl.translatesAutoresizingMaskIntoConstraints = false
+
         self.overlayView.addSubview(titleLbl)
         self.overlayView.addSubview(loadingIndicator)
         self.parentView?.addSubview(overlayView)
@@ -84,10 +87,9 @@ class MBLoadingView {
         ])
 
         NSLayoutConstraint.activate([
-            titleLbl.topAnchor.constraint(equalTo: overlayView.bottomAnchor, constant: 8),
+            titleLbl.topAnchor.constraint(equalTo: loadingIndicator.bottomAnchor, constant: 8),
             titleLbl.centerXAnchor.constraint(equalTo: overlayView.centerXAnchor)
         ])
-        
     }
     
     //Shows the Activity Indicator and starts animation
