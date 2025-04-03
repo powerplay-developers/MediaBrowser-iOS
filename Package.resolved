@@ -1,15 +1,14 @@
 {
-  "originHash" : "132c906a6900a00aeb2904e009b118495e5b5a46289cabc98149b3c926e50e13",
   "pins" : [
     {
-      "identity" : "uxpagerview",
+      "identity" : "ios-uxpagerview",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Deepakgoyal-iOS/UXPagerView",
+      "location" : "https://github.com/powerplay-developers/iOS-UXPagerView",
       "state" : {
         "branch" : "main",
-        "revision" : "e5e9ed554739fda405deb30137eee5507814847f"
+        "revision" : "2d7d1a4f94b11a8ce410db5e10b9196d1d9328c9"
       }
     }
   ],
-  "version" : 3
+  "version" : 2
 }

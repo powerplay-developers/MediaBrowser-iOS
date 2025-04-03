@@ -201,7 +201,6 @@ public class MediaViewer: MediaBrowser {
                 self?.rightSwipeButton.isHidden = true
             }) { [weak self] _ in
                 self?.descriptionView.isHidden = true
-                self?.descriptionView.hideDescriptionView()
             }
         } else if let comment = media[safeIndex: selectedIndex]?.metaData, !comment.isBlank() {
             UIView.animate(withDuration: 0.5, animations: { [weak self] in

@@ -106,8 +106,6 @@ class DescriptionView: UIView {
     @objc private func toggleDescription() {
         isDescriptionHidden = !isDescriptionHidden
         
-        delegate?.descriptionViewDidTap(isDescriptionHidden)
-        
         UIView.animate(withDuration: 0.3) {
             self.descriptionLabel.alpha = self.isDescriptionHidden ? 0 : 1
             self.stackView.layoutIfNeeded()
