@@ -534,7 +534,10 @@ extension MediaBrowser {
         self.selectedIndex = preSelectedIndex
         self.media = media
         self.pageViewControl.defaultSelectedTab = preSelectedIndex
-        self.descriptionTextField.text = media[preSelectedIndex].metaData
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.descriptionTextField.text = media[preSelectedIndex].metaData
+        }
         self.storeInSessionBrowser(index: preSelectedIndex, shouldReloadPager: false)
     }
     
