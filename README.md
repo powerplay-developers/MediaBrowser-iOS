@@ -1,6 +1,6 @@
 # 📽️ MediaBrowser
 
-### MediaBrowser is a data type impartial browser which renders and caches all\* the types media
+### MediaBrowser is a data type impartial browser which renders and caches all\* the media types
 
 <img width="1624" alt="MediaBrowser Architecture" src="https://github.com/user-attachments/assets/1e628a48-6c4d-4972-a6fc-9b319266c3e1">
 
